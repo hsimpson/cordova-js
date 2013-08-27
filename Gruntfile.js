@@ -27,6 +27,7 @@ module.exports = function(grunt) {
         cordovajs: {
           "android": {},
           "blackberry10": {},
+          "cef": {},
           "ios": {},
           "osx": {},
           "test": {},
