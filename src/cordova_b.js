@@ -21,6 +21,7 @@
 
 if ("cordova" in window) { throw new Error("cordova already defined"); };
 
+/*global symbolList*/
 
 var channel = require('cordova/channel');
 var platform = require('cordova/platform');
@@ -93,10 +94,21 @@ function createEvent(type, data) {
 
 
 var cordova = {
-    define:define,
-    require:require,
-    version:PLATFORM_VERSION_BUILD_LABEL,
     platformVersion:PLATFORM_VERSION_BUILD_LABEL,
+    version:PLATFORM_VERSION_BUILD_LABEL,
+    require: function(module) {
+        console.log(module);
+        if(symbolList) {
+          for(var i = 0 ; i < symbolList.length ; i++) {
+            if(module === symbolList[i].symbol) {
+              return require(symbolList[i].path);
+            }
+          }
+        } else {
+          console.log("else");
+          return require(module);
+        }
+    },
     platformId:platform.id,
     /**
      * Methods to add/remove your own addEventListener hijacking on document + window.
@@ -178,23 +190,20 @@ var cordova = {
         JSON_EXCEPTION: 8,
         ERROR: 9
     },
-
     /**
      * Called by native code when returning successful result from an action.
      */
     callbackSuccess: function(callbackId, args) {
-        cordova.callbackFromNative(callbackId, true, args.status, [args.message], args.keepCallback);
+        this.callbackFromNative(callbackId, true, args.status, [args.message], args.keepCallback);
     },
-
     /**
      * Called by native code when returning error result from an action.
      */
     callbackError: function(callbackId, args) {
         // TODO: Deprecate callbackSuccess and callbackError in favour of callbackFromNative.
         // Derive success from status.
-        cordova.callbackFromNative(callbackId, false, args.status, [args.message], args.keepCallback);
+        this.callbackFromNative(callbackId, false, args.status, [args.message], args.keepCallback);
     },
-
     /**
      * Called by native code when returning the result from an action.
      */
@@ -214,16 +223,17 @@ var cordova = {
                     which is used to remove a callback from the list without calling the callbacks
                     typically keepCallback is false in this case
                 */
+
                 // Clear callback if not expecting any more results
                 if (!keepCallback) {
                     delete cordova.callbacks[callbackId];
                 }
             }
         }
-        catch (err) {
+        catch(err) {
             var msg = "Error in " + (isSuccess ? "Success" : "Error") + " callbackId: " + callbackId + " : " + err;
             console && console.log && console.log(msg);
-            cordova.fireWindowEvent("cordovacallbackerror", { 'message': msg });
+            this.fireWindowEvent("cordovacallbackerror", { 'message': msg });
             throw err;
         }
     },
@@ -238,5 +248,4 @@ var cordova = {
     }
 };
 
-
-module.exports = cordova;
+window.cordova = module.exports = cordova;

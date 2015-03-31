@@ -20,7 +20,9 @@
 */
 
 module.exports = {
-    id: 'windows8',
+    // for backward compatibility we report 'windows8' when run on Windows 8.0 and 
+    // 'windows' for Windows 8.1 and Windows Phone 8.1
+    id: (navigator.appVersion.indexOf("MSAppHost/1.0") !== -1) ? 'windows8' : 'windows',
     bootstrap:function() {
         var cordova = require('cordova'),
             exec = require('cordova/exec'),
@@ -33,27 +35,33 @@ module.exports = {
         var onWinJSReady = function () {
             var app = WinJS.Application;
             var checkpointHandler = function checkpointHandler() {
-                cordova.fireDocumentEvent('pause');
+                cordova.fireDocumentEvent('pause',null,true);
             };
 
             var resumingHandler = function resumingHandler() {
-                cordova.fireDocumentEvent('resume');
+                cordova.fireDocumentEvent('resume',null,true);
             };
 
             app.addEventListener("checkpoint", checkpointHandler);
             Windows.UI.WebUI.WebUIApplication.addEventListener("resuming", resumingHandler, false);
             app.start();
-
         };
 
         if (!window.WinJS) {
-            // <script src="//Microsoft.WinJS.1.0/js/base.js"></script>
             var scriptElem = document.createElement("script");
-            scriptElem.src = "//Microsoft.WinJS.1.0/js/base.js";
+
+            if (navigator.appVersion.indexOf("Windows Phone 8.1;") !== -1) {
+                // windows phone 8.1 + Mobile IE 11
+                scriptElem.src = "//Microsoft.Phone.WinJS.2.1/js/base.js";
+            } else if (navigator.appVersion.indexOf("MSAppHost/2.0;") !== -1) {
+                // windows 8.1 + IE 11
+                scriptElem.src = "//Microsoft.WinJS.2.0/js/base.js";
+            } else {
+                // windows 8.0 + IE 10
+                scriptElem.src = "//Microsoft.WinJS.1.0/js/base.js";
+            }
             scriptElem.addEventListener("load", onWinJSReady);
             document.head.appendChild(scriptElem);
-
-            console.log("added WinJS ... ");
         }
         else {
             onWinJSReady();

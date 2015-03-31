@@ -16,15 +16,21 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-var generate = require('./lib/packager');
+try {
+    require('browserify');
+} catch (e) {
+    console.error("\nbrowserify is not installed, you need to:\n\trun `npm install` from " + require('path').dirname(__dirname)+"\n");
+    process.exit(1);
+}
+
+var generate = require('./lib/packager-browserify');
 
 module.exports = function(grunt) {
-    grunt.registerMultiTask('compile', 'Packages cordova.js', function() {
+    grunt.registerMultiTask('compile-browserify', 'Packages cordova.js browserify style', function() {
         var done = this.async();
         var platformName = this.target;
         var useWindowsLineEndings = this.data.useWindowsLineEndings;
-        var platformVersion;
-       
+
         //grabs --platformVersion flag
         var flags = grunt.option.flags();
         var platformVersion;
@@ -36,10 +42,9 @@ module.exports = function(grunt) {
         });
         if(!platformVersion){
             console.log('please add a platform version flag and value');
-            console.log('ex: grunt compile --platformVersion=3.6.0');
+            console.log('ex: grunt compile-browserify --platformVersion=3.6.0');
             throw new Error("platformVersion is required!");
         }
-
         generate(platformName, useWindowsLineEndings, platformVersion, done);
     });
 }

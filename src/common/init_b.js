@@ -21,12 +21,13 @@
 
 var channel = require('cordova/channel');
 var cordova = require('cordova');
-var modulemapper = require('cordova/modulemapper');
 var platform = require('cordova/platform');
-var pluginloader = require('cordova/pluginloader');
 var utils = require('cordova/utils');
 
-var platformInitChannelsArray = [channel.onNativeReady, channel.onPluginsReady];
+var platformInitChannelsArray = [channel.onDOMContentLoaded, channel.onNativeReady];
+
+// setting exec
+cordova.exec = require('cordova/exec');
 
 function logUnfiredChannels(arr) {
     for (var i = 0; i < arr.length; ++i) {
@@ -68,7 +69,6 @@ function replaceNavigator(origNavigator) {
     }
     return newNavigator;
 }
-
 if (window.navigator) {
     window.navigator = replaceNavigator(window.navigator);
 }
@@ -105,26 +105,13 @@ if (window._nativeReady) {
     channel.onNativeReady.fire();
 }
 
-modulemapper.clobbers('cordova', 'cordova');
-modulemapper.clobbers('cordova/exec', 'cordova.exec');
-modulemapper.clobbers('cordova/exec', 'Cordova.exec');
-
 // Call the platform-specific initialization.
 platform.bootstrap && platform.bootstrap();
-
-// Wrap in a setTimeout to support the use-case of having plugin JS appended to cordova.js.
-// The delay allows the attached modules to be defined before the plugin loader looks for them.
-setTimeout(function() {
-    pluginloader.load(function() {
-        channel.onPluginsReady.fire();
-    });
-}, 0);
 
 /**
  * Create all cordova objects once native side is ready.
  */
 channel.join(function() {
-    modulemapper.mapModules(window);
 
     platform.initialize && platform.initialize();
 
@@ -139,4 +126,3 @@ channel.join(function() {
     }, channel.deviceReadyChannelsArray);
 
 }, platformInitChannelsArray);
-

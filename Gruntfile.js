@@ -28,8 +28,22 @@ module.exports = function(grunt) {
             "ios": {},
             "osx": {},
             "test": {},
-            "windows8": { useWindowsLineEndings: true },
-            "windowsphone": { useWindowsLineEndings: true },
+            "windows": { useWindowsLineEndings: true },
+            "wp8": { useWindowsLineEndings: true },
+            "firefoxos": {},
+            "webos": {},
+            "ubuntu": {},
+            "browser": {}
+        },
+        "compile-browserify": {
+            "amazon-fireos": {},
+            "android": {},
+            "blackberry10": {},
+            "ios": {},
+            "osx": {},
+            //"test": {},
+            "windows": { useWindowsLineEndings: true },
+            "wp8": { useWindowsLineEndings: true },
             "firefoxos": {},
             "ubuntu": {},
             "browser": {}
@@ -55,4 +69,5 @@ module.exports = function(grunt) {
     grunt.registerTask('build', ['compile', 'jshint', 'whitespace-check']);
     grunt.registerTask('test', ['compile', '_test']);
     grunt.registerTask('btest', ['compile', '_btest']);
+    grunt.registerTask('cover', ['compile', '_cover']);
 };

@@ -19,5 +19,17 @@
  *
 */
 
-console.log('WARNING: please require cordova/exec/proxy instead');
-module.exports = require('cordova/exec/proxy');
+var execProxy = require('cordova/exec/proxy');
+
+module.exports = function(success, fail, service, action, args) {
+    var proxy = execProxy.get(service,action);
+    if(proxy) {
+        try {
+            proxy(success, fail, args);
+        } catch(e) {
+            console.log("Exception calling exec with command :: " + service + " :: " + action  + " ::exception=" + e);
+        }
+    } else {
+        fail && fail("Missing Command Error");
+    }
+};

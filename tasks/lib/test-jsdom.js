@@ -22,13 +22,12 @@
 var path             = require('path');
 var fs               = require('fs');
 var collect          = require('./collect');
-var jas              = require("./../vendor/jasmine/jasmine");
-var TerminalReporter = require('./test-reporter').TerminalReporter;
+var jas              = require('jasmine-node');
 var testLibName      = path.join(__dirname, '..', '..', 'pkg', 'cordova.test.js')
 var testLib          = fs.readFileSync(testLibName, 'utf8')
 
 var jsdom    = require("jsdom-nogyp").jsdom;
-var document = jsdom(null, null, { url: 'http://jsdomtest.info/a?b#c' });
+var document = jsdom(null, null, { url: 'file:///jsdomtest.info/a?b#c' });
 var window   = document.createWindow();
 
 module.exports = function(callback) {
@@ -39,6 +38,9 @@ module.exports = function(callback) {
     Object.keys(jas).forEach(function (key) {
         this[key] = window[key] = global[key] = jas[key];
     });
+
+    // Hack to fix jsdom with node v0.11.13+
+    delete String.prototype.normalize;
 
     try {
         eval(testLib);
@@ -61,7 +63,7 @@ module.exports = function(callback) {
     }
 
     var env = jasmine.getEnv();
-    env.addReporter(new TerminalReporter({
+    env.addReporter(new jas.TerminalReporter({
         color: true,
         onComplete: function(runner) { callback(runner.results().passed()); }
     }));

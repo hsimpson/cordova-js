@@ -1,5 +1,4 @@
 /*
- *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,8 +15,20 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- *
 */
 
-console.log('WARNING: please require cordova/exec/proxy instead');
-module.exports = require('cordova/exec/proxy');
+try {
+    require('jasmine-node');
+    require('istanbul');
+} catch (e) {
+    console.error("\none of jasmine-node or istanbul packages is not installed, you need to:\n" +
+        "\trun `npm install` from " + require('path').dirname(__dirname)+"\n");
+    process.exit(1);
+}
+
+module.exports = function(grunt) {
+    grunt.registerTask('_cover', 'measures test coverage using istanbul', function() {
+        var done = this.async();
+        require('./lib/test-jsdom-coverage')(done);
+    });
+};

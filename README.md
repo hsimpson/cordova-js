@@ -18,6 +18,12 @@
 # under the License.
 #
 -->
+
+[![Build Status](https://travis-ci.org/apache/cordova-js.svg?branch=master)](https://travis-ci.org/apache/cordova-js)
+
+[![Build status](https://ci.appveyor.com/api/projects/status/github/apache/cordova-js?branch=master&svg=true)](https://ci.appveyor.com/project/Humbedooh/cordova-js/branch/master)
+
+
 A unified JavaScript layer for [Apache Cordova](http://cordova.apache.org/) projects.
 
 # Project Structure
@@ -28,7 +34,7 @@ A unified JavaScript layer for [Apache Cordova](http://cordova.apache.org/) proj
      |  |-common/ ........... base modules shared across platfoms
      |  |  |-builder.js ..... injects in our classes onto window and navigator
      |  |  |-channel.js ..... pub/sub impl for custom framework events 
-     |  |  |-common.js ...... common locations to add Cordova objects to browser globals
+     |  |  |-init.js ........ common locations to add Cordova objects to browser globals
      |  |  |-exec.js ........ interace stub for each platform specific version of exec.js
      |  |  |-platform.js .... stub for platform's specific version of platform.js
      |  |  '-utils.js ....... closures, uuids, object, cloning, extending prototypes
@@ -40,7 +46,9 @@ A unified JavaScript layer for [Apache Cordova](http://cordova.apache.org/) proj
      |  '-<platform>/ ....... contains the platform-specific base modules
      |
      |-tasks/ ............... custom grunt tasks
-     '-tests/ ............... unit tests
+     |-tests/ ............... unit tests
+     |
+     '-pkg/ ................. generated platform cordova.js files
 
 # Building
 
@@ -54,35 +62,47 @@ All of the build tasks can be run via the `grunt` node module. Install it global
 
 Then from the repository root run:
 
-    grunt
-	
+    grunt --platformVersion=3.6.0
+
+To compile the js for just one platform, run:
+
+    grunt compile:android --platformVersion=3.6.0
+
+To create the browserify version of the js, run:
+
+    grunt compile-browserify --platformVersion=3.6.0
+
+To compile the browserify version of the js for just one platform, run:
+
+    grunt compile-browserify:android --platformVersion=3.6.0
+
 For integration, see the 'Integration' section below.
 
 ## Known Issues
 
 - On Windows, when you run `npm install`, you may get errors regarding
   contextify. This is necessary for running the tests. Make sure you
-  are running node v0.6.15 at the least (and npm v1.1.16 which should
-  come bundled with node 0.6.15). Also, install [Python 2.7.x](http://python.org/download/releases/2.7.3) and [Visual C++ 2010 Express](http://www.microsoft.com/visualstudio/en-us/products/2010-editions/visual-cpp-express). When that is done, run `npm install` again and it should build
+  are running `node` **0.10.1** at the least (and `npm` **1.2.15** which should
+  come bundled with `node` **0.10.1**). Also, install [Python 2.7.x](http://python.org/download/releases/2.7.3) and [Visual C++ 2010 Express](http://www.microsoft.com/visualstudio/en-us/products/2010-editions/visual-cpp-express). When that is done, run `npm install` again and it should build
   contextify natively on Windows.
 
 # How It Works
 
-The `build/packager.js` tool is a node.js script that concatenates all of the core Cordova plugins in this repository into a `cordova.<platform>.js` file under the `pkg/` folder. It also wraps the plugins with a RequireJS-compatible module syntax that works in both browser and node environments. We end up with a cordova.js file that wraps each Cordova plugin into its own module.
+The `tasks/lib/packager.js` tool is a node.js script that concatenates all of the core Cordova plugins in this repository into a `cordova.<platform>.js` file under the `pkg/` folder. It also wraps the plugins with a RequireJS-compatible module syntax that works in both browser and node environments. We end up with a `cordova.js` file that wraps each **Cordova** *plugin* into its own module.
 
-Cordova defines a `channel` module under `lib/common/channel.js`, which is a publish/subscribe implementation that the project uses for event management.
+**Cordova** defines a `channel` module under `src/common/channel.js`, which is a *publish/subscribe* implementation that the project uses for event management.
 
-The Cordova native-to-webview bridge is initialized in `lib/scripts/bootstrap.js`. This file attaches the `boot` function to the `channel.onNativeReady` event - fired by native with a call to:
+The **Cordova** *native-to-webview* bridge is initialized in `src/scripts/bootstrap.js`. This file attaches the `boot` function to the `channel.onNativeReady` event - fired by native with a call to:
 
     cordova.require('cordova/channel).onNativeReady.fire()
 
-The `boot` method does all the work.  First, it grabs the common platform definition (under `lib/common/common.js`) and injects all of the objects defined there onto `window` and other global namespaces. Next, it grabs all of the platform-specific object definitions (as defined under `lib/<platform>/platform.js`) and overrides those onto `window`. Finally, it calls the platform-specific `initialize` function (located in the platform definition). At this point, Cordova is fully initialized and ready to roll. Last thing we do is wait for the `DOMContentLoaded` event to fire to make sure the page has loaded properly. Once that is done, Cordova fires the `deviceready` event where you can safely attach functions that consume the Cordova APIs.
+The `boot` method does all the work.  First, it grabs the common platform definition (under `src/common/common.js`) and injects all of the objects defined there onto `window` and other global namespaces. Next, it grabs all of the platform-specific object definitions (as defined under `src/<platform>/platform.js`) and overrides those onto `window`. Finally, it calls the platform-specific `initialize` function (located in the platform definition). At this point, Cordova is fully initialized and ready to roll. Last thing we do is wait for the `DOMContentLoaded` event to fire to make sure the page has loaded properly. Once that is done, Cordova fires the `deviceready` event where you can safely attach functions that consume the Cordova APIs.
 
 # Testing
 
 Tests run in node or the browser. To run the tests in node:
     
-    grunt test
+    grunt test --platformVersion=3.6.0
 
 To run them in the browser:
 
@@ -90,26 +110,30 @@ To run them in the browser:
 
 Final testing should always be done with the [Mobile Spec test application](https://github.com/apache/cordova-mobile-spec).
 
+To get current tests coverage:
+
+    grunt cover --platformVersion=3.6.0
+
 # Integration
 
 ## Cordova
 
-Build the js files by running grunt as described above. Update each platform independently. For a given platform:
+Build the js files by running **grunt** as described above. Update each platform independently. For a given platform:
 
-Replace the cordova.js file in the cordova-PLATFORM directory with the newly generated cordova.PLATFORM.js file. If necessary, change the name of the new file to match that of the overwritten one.
+Replace the `cordova.js` file in the cordova <platform>platform_www/cordova.js directory with the newly generated `cordova.js` file. If necessary, change the name of the new file to match that of the overwritten one.
 
-Once the new js file has been added, any new projects created will use the updated js. To update an already existing project, directly replace the cordova.js file within the project's www/ folder with the generated cordova.PLATFORM.js. Make sure to change the file name to match the original.
+Once the new js file has been added, any new projects created will use the updated js. To update an already existing project, directly replace the cordova.js file within the project's `www/` folder with the generated `cordova.PLATFORM.js`. Make sure to change the file name to match the original.
 
 # Adding a New Platform
 
-1. Add your platform as a directory under the `lib` folder.
+1. Add your platform as a directory under the `src` folder.
 2. Write a module that encapsulates your platform's `exec` method and
-   call it exec.js. The `exec` method is a JavaScript function
+   call it `exec.js`. The `exec` method is a JavaScript function
    that enables communication from the platform's JavaScript environment
    into the platform's native environment. Each platform uses a different
    mechanism to enable this bridge. We recommend you check out the other
    platform `exec` definitions for inspiration. Drop this into the
-   `lib/<platform>` folder you created in step 1. The `exec` method has the following method
+   `src/<platform>` folder you created in step 1. The `exec` method has the following method
    signature: `function(success, fail, service, action, args)`, with the
    following parameters:
   - `success`: a success function callback
@@ -122,7 +146,7 @@ Once the new js file has been added, any new projects created will use the updat
     by the `exec` call
    It is required that new platform additions be as consistent as
    possible with the existing `service` and `action` labels.
-2. Define your platform definition object and name it platform.js. Drop this into the `lib/<platform>` folder. This file should contain a JSON object with the following properties:
+2. Define your platform definition object and name it `platform.js`. Drop this into the `src/<platform>` folder. This file should contain a **JSON** object with the following properties:
     - `id`: a string representing the platform. This should be the same
       name the .js file has
     - `objects`: the property names defined as children of this property
@@ -162,9 +186,9 @@ Once the new js file has been added, any new projects created will use the updat
     }
     </pre>
 
-3. You should probably add a `packager.bundle('<platform>')` call to the `Jakefile` under the `build` task.
+3. You should probably add a `<platform>:{}` entry to the `Gruntfile` compile arrays.
 4. Make sure your native implementation executes the following JavaScript once all of the native side is initialized and ready: `require('cordova/channel').onNativeReady.fire()`.
-5. The deviceready event is important. To make sure that the stock
+5. The `deviceready` event is important. To make sure that the stock
    common JavaScript fires this event off, the device and network
    connection plugins must successfully be instantiated and return
    information about the connectivity and device information. The

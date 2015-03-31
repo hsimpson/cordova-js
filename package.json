@@ -2,14 +2,17 @@
   "author": "Gord Tanner <gtanner@gmail.com> (http://github.com/gtanner)",
   "name": "cordova-js",
   "description": "Cordova JavaScript: a unified JavaScript layer for the Cordova suite of projects enabling cross-platform native mobile development of applications using HTML, CSS and JavaScript.",
-  "version": "3.1.0",
+  "version": "3.8.1-dev",
   "homepage": "http://cordova.apache.org",
   "repository": {
     "type": "git",
     "url": "http://git-wip-us.apache.org/repos/asf/cordova-js.git"
   },
   "engines": {
-    "node": "~0.6.15"
+    "node": "~0.10.x"
+  },
+  "scripts": {
+    "test": "grunt test --platformVersion=3.6.0"
   },
   "contributors": [
     {
@@ -42,7 +45,7 @@
     },
     {
       "name": "Anis Kadri",
-      "email": ""
+      "email": "anis@apache.org"
     },
     {
       "name": "Dan Silivestru",
@@ -51,13 +54,26 @@
     {
       "name": "Shazron Abdullah",
       "email": "shazron@apache.org"
+    },
+    {
+      "name": "Steve Gill",
+      "email": "stevengill97@gmail.com" 
     }
   ],
   "devDependencies": {
-    "jsdom-nogyp": "0.8.3",
     "connect": "1.8.5",
-    "grunt": "~0.4.1",
-    "grunt-contrib-clean": "~0.4.1",
-    "grunt-contrib-jshint": "~0.6.0"
+    "grunt": "0.4.1",
+    "grunt-contrib-clean": "0.6.0",
+    "grunt-contrib-jshint": "0.10.0",
+    "istanbul": "^0.3.4",
+    "jasmine-node": "1.14.5",
+    "jsdom-nogyp": "0.8.3",
+    "mkdirp": "^0.5.0",
+    "grunt-cli": "0.1.13"
+  },
+  "dependencies": {
+    "browserify": "7.1.0",
+    "through": "2.3.4",
+    "uglify-js": "^2.4.15"
   }
 }
